@@ -4,10 +4,11 @@
 Esta classe deve conter todas as suas implementações relevantes para seu filtro de partículas
 """
 
-from pf import Particle, create_particles
+from pf import Particle, create_particles, draw_random_sample
 import numpy as np
 import inspercles # necessário para o a função nb_lidar que simula o laser
 import math
+from scipy.stats import norm
 
 
 largura = 775 # largura do mapa
@@ -19,11 +20,13 @@ robot = Particle(largura/2, altura/2, math.pi/4, 1.0)
 # Nuvem de particulas
 particulas = []
 
-num_particulas = 10
+num_particulas = 2000
+
+n_lasers = 10
 
 
 # Os angulos em que o robo simulado vai ter sensores
-angles = np.linspace(0.0, 2*math.pi, num=8, endpoint=False)
+angles = np.linspace(0.0, 2*math.pi, n_lasers, endpoint=False)
 
 # Lista mais longa
 movimentos_longos = [[-10, -10, 0], [-10, 10, 0], [-10,0,0], [-10, 0, 0],
@@ -53,9 +56,7 @@ movimentos_relativos = [[0, -math.pi/3],[10, 0],[10, 0], [10, 0], [10, 0],[15, 0
                        [10,0], [10, 0], [10, 0], [10, 0], [10, 0], [10, 0]]
 
 
-
 movimentos = movimentos_relativos
-
 
 
 def cria_particulas(minx=0, miny=0, maxx=largura, maxy=altura, n_particulas=num_particulas):
@@ -65,7 +66,7 @@ def cria_particulas(minx=0, miny=0, maxx=largura, maxy=altura, n_particulas=num_
     var_x = (maxx - minx)/2
     var_y = (maxy - miny)/2
     var_theta = math.pi/3
-    return create_particles(robot.pose())
+    return create_particles(robot.pose(), var_x, var_y, var_theta, n_particulas)
     
 def move_particulas(particulas, movimento):
     """
@@ -78,15 +79,23 @@ def move_particulas(particulas, movimento):
         Você não precisa mover o robô. O código fornecido pelos professores fará isso
         
     """
-    dp = 2
-    dp_theta = 1
+    dp = 1 # Desvio padrão linear
+    dp_theta = 0.0349 # Desvio padrão angular
 
-    for m in movimentos:
-      m[0] = m[0] + round(random.uniform(-dp,dp), 2)
-      m[1] = m[1] + round(random.uniform(-dp_theta,dp_theta), 2)
+    mov_dp = np.random.normal(0, dp, 1)[0]
+    mov_dp_theta = np.random.normal(0, dp_theta, 1)[0]
 
-    for particula in particulas:
-      particula.move_relative(movimentos)
+    mov_l = 0
+    mov_t = 0
+
+    # Ciração do movimento com o desvio padrão
+    if movimento[0] != 0:
+      mov_l = movimento[0] + mov_dp # Movimeno linear
+    if movimento[1] != 0:
+      mov_t = movimento[1] + mov_dp_theta # Movimento angular
+
+    for p in particulas:
+    	p.move_relative([mov_l, mov_t])
 
     return particulas
     
@@ -103,15 +112,33 @@ def leituras_laser_evidencias(robot, particulas):
         Você vai precisar calcular para o robo
         
     """
+    dp = 14 # Desvio padrão do laser
+
+    lasers_robo = inspercles.nb_lidar(robot, angles) #leitura real
+    lista_laser_robo = list(lasers_robo.values())
+
+    lista_somatoria = []
     
-    leitura_robo = inspercles.nb_lidar(robot, angles) #leitura real
+    # Aplica a leitura do laser para cada particula
+    for p in particulas:
+      lasers_particula = inspercles.nb_lidar(p, angles)
+      lista_laser_particula = list(lasers_particula.values())
+      somatoria = 0
+
+
+      for i in range(len(lista_laser_robo)):
+      	somatoria += norm.pdf((lista_laser_particula[i]), lista_laser_robo[i], dp) # Somatória de Monte Carlo
+      	#somatoria += np.exp(-(lista_laser_particula[i]-lista_laser_robo[i])/(2*dp*dp))
+      lista_somatoria.append(somatoria)
+
+    for j in range(len(lista_somatoria)):
+    	particulas[j].w = lista_somatoria[j]/sum(lista_somatoria) # Normalização e atribuição do novo w
+
+    return
     
     # Voce vai precisar calcular a leitura para cada particula usando inspercles.nb_lidar e depois atualizar as probabilidades
 
-
-    
-    
-def reamostrar(particulas, n_particulas = num_particulas):
+def reamostrar(particulas, n_particulas=num_particulas):
     """
         Reamostra as partículas devolvendo novas particulas sorteadas
         de acordo com a probabilidade e deslocadas de acordo com uma variação normal    
@@ -122,14 +149,14 @@ def reamostrar(particulas, n_particulas = num_particulas):
         
         Use 1/n ou 1, não importa desde que seja a mesma
     """
+    lista_pesos = []
+
+    # Cria a lista com os pesos
+    for p in particulas:
+    	lista_pesos.append(p.w)
+    	p.w = 1 # Reseta o w para 1
+
+    # Redesenha as partículas baseado nos pesos
+    particulas = draw_random_sample(particulas, lista_pesos, n_particulas)
+
     return particulas
-
-
-    
-
-
-
-
-
-
-

@@ -38,8 +38,14 @@ class Window:
         # Initialize view
         pygame.init()
         if background_file is None:
+            background_file = BACKGROUND_FILE_PNG
+        try:
+            self.background = pygame.image.load(background_file)
+        except pygame.error:
             background_file = BACKGROUND_FILE
-        self.background = pygame.image.load(background_file)
+            self.background = pygame.image.load(background_file)
+
+            
         self.size = self.background.get_size()
         self.screen = pygame.display.set_mode(self.size)
 
@@ -51,7 +57,8 @@ class Window:
         particles = projeto_pf.cria_particulas()
         if particles:
             self.particles = particles
-            
+
+
         self.leituras_robot = inspercles.nb_lidar(self.robot, projeto_pf.angles)
 
 
@@ -67,16 +74,18 @@ class Window:
             if nonzero(self.robot_speed):
                 self.robot.move_relative(self.robot_speed)
                 self.leituras_robot = inspercles.nb_lidar(self.robot, projeto_pf.angles)
-                
+                #print("HIAHSDHUADSHUASDHUASDHUSDHUDHUADSHU")
+                #print(self.particles)
                 # move particles
-                projeto_pf.move_particulas(self.particles, self.robot_speed)
+                self.particles = projeto_pf.move_particulas(self.particles, self.robot_speed)
                 # draw lasers
                 
-                  # Atualiza probabilidade e posicoes
-                projeto_pf.leituras_laser_evidencias(projeto_pf.robot, projeto_pf.particulas)
+                # Atualiza probabilidade e posicoes
+
                 
+                projeto_pf.leituras_laser_evidencias(self.robot, self.particles)
                 # Reamostra as particulas
-                projeto_pf.particulas = projeto_pf.reamostrar(projeto_pf.particulas)
+                self.particles = projeto_pf.reamostrar(self.particles)
           
             if self.on_update is not None:
                 self.on_update(self.robot, self.particles, self.robot_speed)
@@ -88,8 +97,8 @@ class Window:
         Handle user generated events.
         '''
         for event in events:
-            print("event: ", event)
-            print("speed: ", self.robot_speed)
+            #print("event: ", event)
+            #print("speed: ", self.robot_speed)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
@@ -97,7 +106,7 @@ class Window:
                 if event.key in SPEED_DELTAS:
                     delta = SPEED_DELTAS[event.key]
                     self.robot_speed[delta[0]] += delta[1]
-                    print(event.key)
+                    #print(event.key)
             elif event.type == pygame.KEYUP:
                 if event.key in SPEED_DELTAS:
                     delta = SPEED_DELTAS[event.key]
@@ -170,13 +179,14 @@ if __name__ == '__main__':
     from random import random
 
 
-    print("Se \n \tpython window.py \n não funcionar, tente: \n \tpythonw window.py \n especialmente no Python 3")
+    #print("Se \n \tpython window.py \n não funcionar, tente: \n \tpythonw window.py \n especialmente no Python 3")
 
     def on_update(robot, particles, robot_speed):
         global count
         count += 1
         if not count%skip:
-            print(robot.x, robot.y, robot.theta)
+            #print(robot.x, robot.y, robot.theta)
+            pass
             
     win = Window(on_update=on_update)
 
@@ -187,6 +197,6 @@ if __name__ == '__main__':
         theta = random() * 2 * math.pi
         return Particle(x, y, theta)
 
-    win.particles = [random_particle() for _ in range(50)]
+    win.particles = [random_particle() for _ in range(1000)]
 
     win.run()

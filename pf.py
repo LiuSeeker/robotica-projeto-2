@@ -173,5 +173,3 @@ def draw_random_sample(choices, probabilities, n):
     for i in inds:
         samples.append(deepcopy(choices[int(i)]))
     return samples
-
-

@@ -6,6 +6,7 @@ BLACK = (0, 0, 0)
 
 # SPRITES
 BACKGROUND_FILE='sparse_obstacles.bmp'
+BACKGROUND_FILE_PNG = 'sparse_obstacles.png'
 ARROW_THICK = 2
 ARROW_WIDTH = 20
 ARROW_HEIGHT = 4
