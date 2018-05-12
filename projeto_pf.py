@@ -20,9 +20,9 @@ robot = Particle(largura/2, altura/2, math.pi/4, 1.0)
 # Nuvem de particulas
 particulas = []
 
-num_particulas = 2000
+num_particulas = 500
 
-n_lasers = 10
+n_lasers = 8
 
 
 # Os angulos em que o robo simulado vai ter sensores
@@ -112,7 +112,7 @@ def leituras_laser_evidencias(robot, particulas):
         Você vai precisar calcular para o robo
         
     """
-    dp = 14 # Desvio padrão do laser
+    dp = 20 # Desvio padrão do laser
 
     lasers_robo = inspercles.nb_lidar(robot, angles) #leitura real
     lista_laser_robo = list(lasers_robo.values())
@@ -127,7 +127,7 @@ def leituras_laser_evidencias(robot, particulas):
 
 
       for i in range(len(lista_laser_robo)):
-      	somatoria += norm.pdf((lista_laser_particula[i]), lista_laser_robo[i], dp) # Somatória de Monte Carlo
+      	somatoria += norm.pdf(lista_laser_particula[i], lista_laser_robo[i], dp) # Somatória de Monte Carlo
       	#somatoria += np.exp(-(lista_laser_particula[i]-lista_laser_robo[i])/(2*dp*dp))
       lista_somatoria.append(somatoria)
 
