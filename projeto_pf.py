@@ -151,6 +151,9 @@ def reamostrar(particulas, n_particulas=num_particulas):
     """
     lista_pesos = []
 
+    dp = 3 # Desvio padrão linear
+    dp_theta = 0.0523 # Desvio padrão angular
+
     # Cria a lista com os pesos
     for p in particulas:
     	lista_pesos.append(p.w)
@@ -158,5 +161,10 @@ def reamostrar(particulas, n_particulas=num_particulas):
 
     # Redesenha as partículas baseado nos pesos
     particulas = draw_random_sample(particulas, lista_pesos, n_particulas)
+
+    for p in particulas:
+      p.x = p.x + np.random.normal(0, dp, 1)[0]
+      p.y = p.y + np.random.normal(0, dp, 1)[0]
+      p.theta = p.theta + np.random.normal(0, dp_theta, 1)[0]
 
     return particulas
