@@ -1,6 +1,6 @@
 **Contribuidores/Contributors**:
 - [mirwox](https://github.com/mirwox)
-- [toshikurauchi] (https://github.com/toshikurauchi)
+- [toshikurauchi](https://github.com/toshikurauchi)
 - [LiuSeeker](https://github.com/LiuSeeker)
 ---
 
